@@ -22,7 +22,7 @@ tasks.withType(JavaCompile).configureEach {
 
 group = 'net.fabricmc'
 archivesBaseName = project.name
-def baseVersion = '0.9'
+def baseVersion = '0.10'
 
 def ENV = System.getenv()
 if (ENV.BUILD_NUMBER) {
@@ -30,6 +30,8 @@ if (ENV.BUILD_NUMBER) {
 } else {
 	version = baseVersion + '.local'
 }
+
+println "version    " + version
 
 repositories {
 	mavenLocal()
@@ -58,28 +60,8 @@ configurations.all {
 	}
 }
 
-static download(String artifact) {
-	def f = new File('libs/' + artifact)
-	if (!f.exists()) {
-		f.parentFile.mkdirs()
-		new URL("https://hub.spigotmc.org/stash/projects/SPIGOT/repos/builddata/raw/bin/"+artifact+"?at=refs%2Fheads%2Fmaster").withInputStream{ i -> f.withOutputStream{ it << i }}
-	}
-}
-
-task downloadShit {
-	doLast {
-		download("fernflower.jar")
-		download("SpecialSource-2.jar")
-		download("SpecialSource.jar")
-	}
-}
-
-tasks.compileJava.dependsOn(tasks.downloadShit)
-
 dependencies {
 	implementation gradleApi()
-
-	implementation fileTree(dir: 'libs', include: '*.jar')
 
 	bootstrap project(":bootstrap")
 
@@ -167,11 +149,6 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 	from sourceSets.main.allSource
 }
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
-	archiveClassifier = 'javadoc'
-	from javadoc.destinationDir
-}
-
 license {
 	header rootProject.file("HEADER")
 	include "**/*.java"
@@ -239,7 +216,6 @@ publishing {
 			from components['java']
 
 			artifact sourcesJar
-			artifact javadocJar
 
 			pom.withXml {
 				patchPom(asNode())
@@ -255,7 +231,6 @@ publishing {
 			from components['java']
 
 			artifact sourcesJar
-			artifact javadocJar
 
 			pom.withXml {
 				patchPom(asNode())

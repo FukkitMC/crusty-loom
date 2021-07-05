@@ -30,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
@@ -64,10 +65,8 @@ public class GenerateSourcesTask extends AbstractLoomTask {
 	public void doTask() throws Throwable {
 		int threads = Runtime.getRuntime().availableProcessors();
 		Path javaDocs = getExtension().getMappingsProvider().tinyMappings.toPath();
-		Collection<Path> libraries = getProject().getConfigurations().getByName(Constants.Configurations.MINECRAFT_DEPENDENCIES).getFiles()
-						.stream().map(File::toPath).collect(Collectors.toSet());
 
-		DecompilationMetadata metadata = new DecompilationMetadata(threads, javaDocs, libraries);
+		DecompilationMetadata metadata = new DecompilationMetadata(threads, javaDocs, Collections.emptyList());
 		Path runtimeJar = getExtension().getMappingsProvider().mappedProvider.getMappedJar().toPath();
 		Path sourcesDestination = getMappedJarFileWithSuffix("-sources.jar").toPath();
 		Path linemap = getMappedJarFileWithSuffix("-sources.lmap").toPath();
