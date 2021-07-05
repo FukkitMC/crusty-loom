@@ -56,15 +56,7 @@ public class LaunchProvider extends DependencyProvider {
 		final LaunchConfig launchConfig = new LaunchConfig()
 				.property("fabric.development", "true")
 				.property("fabric.remapClasspathFile", getRemapClasspathFile().getAbsolutePath())
-				.property("log4j.configurationFile", getAllLog4JConfigFiles())
-
-				.property("client", "java.library.path", getExtension().getNativesDirectory().getAbsolutePath())
-				.property("client", "org.lwjgl.librarypath", getExtension().getNativesDirectory().getAbsolutePath())
-
-				.argument("client", "--assetIndex")
-				.argument("client", getExtension().getMinecraftProvider().getVersionInfo().assetIndex().fabricId(getExtension().getMinecraftProvider().minecraftVersion()))
-				.argument("client", "--assetsDir")
-				.argument("client", new File(getExtension().getUserCache(), "assets").getAbsolutePath());
+				.property("log4j.configurationFile", getAllLog4JConfigFiles());
 
 		//Enable ansi by default for idea and vscode
 		if (new File(getProject().getRootDir(), ".vscode").exists()

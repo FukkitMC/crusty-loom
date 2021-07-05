@@ -34,12 +34,7 @@ public class CleanEclipseRunsTask extends AbstractLoomTask {
 	@TaskAction
 	public void cleanRuns() throws IOException {
 		EclipseModel eclipseModel = getProject().getExtensions().getByType(EclipseModel.class);
-		File clientRunConfigs = new File(getProject().getRootDir(), eclipseModel.getProject().getName() + "_client.launch");
 		File serverRunConfigs = new File(getProject().getRootDir(), eclipseModel.getProject().getName() + "_server.launch");
-
-		if (clientRunConfigs.exists()) {
-			clientRunConfigs.delete();
-		}
 
 		if (serverRunConfigs.exists()) {
 			serverRunConfigs.delete();

@@ -325,7 +325,7 @@ public class MappingsProviderImpl extends DependencyProvider implements Mappings
 
 	private void suggestFieldNames(MinecraftProviderImpl minecraftProvider, Path oldMappings, Path newMappings) {
 		Command command = new CommandProposeFieldNames();
-		runCommand(command, minecraftProvider.getMergedJar().getAbsolutePath(),
+		runCommand(command, minecraftProvider.getServerJar().getAbsolutePath(),
 						oldMappings.toAbsolutePath().toString(),
 						newMappings.toAbsolutePath().toString());
 	}

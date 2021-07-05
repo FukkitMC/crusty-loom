@@ -53,7 +53,6 @@ public final class LoomTasks {
 			t.setGroup("fabric");
 		});
 
-		tasks.register("downloadAssets", DownloadAssetsTask.class, t -> t.setDescription("Downloads required assets for Fabric."));
 		tasks.register("remapSourcesJar", RemapSourcesJarTask.class, t -> t.setDescription("Remaps the project sources jar to intermediary names."));
 
 		registerIDETasks(tasks);
@@ -98,14 +97,9 @@ public final class LoomTasks {
 			tasks.register(taskName, RunGameTask.class, config).configure(t -> {
 				t.setDescription("Starts the '" + config.getConfigName() + "' run configuration");
 				t.setGroup("fabric");
-
-				if (config.getEnvironment().equals("client")) {
-					t.dependsOn("downloadAssets");
-				}
 			});
 		});
 
-		extension.getRunConfigs().create("client", RunConfigSettings::client);
 		extension.getRunConfigs().create("server", RunConfigSettings::server);
 	}
 

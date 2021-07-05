@@ -41,7 +41,6 @@ import org.cadixdev.mercury.Mercury;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.plugins.BasePluginConvention;
 import org.jetbrains.annotations.ApiStatus;
@@ -53,12 +52,8 @@ import net.fabricmc.loom.configuration.ide.RunConfigSettings;
 import net.fabricmc.loom.configuration.processors.JarProcessor;
 import net.fabricmc.loom.configuration.processors.JarProcessorManager;
 import net.fabricmc.loom.configuration.providers.MinecraftProviderImpl;
-import net.fabricmc.loom.configuration.providers.minecraft.MinecraftMappedProvider;
-import net.fabricmc.loom.configuration.providers.mappings.GradleMappingContext;
-import net.fabricmc.loom.configuration.providers.mappings.LayeredMappingSpec;
-import net.fabricmc.loom.configuration.providers.mappings.LayeredMappingSpecBuilder;
-import net.fabricmc.loom.configuration.providers.mappings.LayeredMappingsDependency;
 import net.fabricmc.loom.configuration.providers.mappings.MappingsProviderImpl;
+import net.fabricmc.loom.configuration.providers.minecraft.MinecraftMappedProvider;
 
 public class LoomGradleExtension {
 	public String refmapName;
@@ -116,16 +111,6 @@ public class LoomGradleExtension {
 		return srcMercuryCache[id] != null ? srcMercuryCache[id] : (srcMercuryCache[id] = factory.get());
 	}
 
-	public Dependency officialMojangMappings() {
-		return layered(LayeredMappingSpecBuilder::officialMojangMappings);
-	}
-
-	public Dependency layered(Action<LayeredMappingSpecBuilder> action) {
-		LayeredMappingSpecBuilder builder = new LayeredMappingSpecBuilder();
-		action.execute(builder);
-		LayeredMappingSpec builtSpec = builder.build();
-		return new LayeredMappingsDependency(new GradleMappingContext(project, "layers_" + builtSpec.getVersion().replace("+", "_").replace(".", "_")), builtSpec, builtSpec.getVersion());
-	}
 
 	public LoomGradleExtension(Project project) {
 		this.project = project;

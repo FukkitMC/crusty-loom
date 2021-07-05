@@ -76,10 +76,9 @@ public final class MixinRefmapHelper {
 
 					if (json != null) {
 						boolean hasMixins = json.has("mixins") && json.get("mixins").isJsonArray();
-						boolean hasClient = json.has("client") && json.get("client").isJsonArray();
 						boolean hasServer = json.has("server") && json.get("server").isJsonArray();
 
-						if (json.has("package") && (hasMixins || hasClient || hasServer)) {
+						if (json.has("package") && (hasMixins || hasServer)) {
 							if (!onlyWithoutRefmap || !json.has("refmap") || !json.has("minVersion")) {
 								mixinFilename.add(entry.getName());
 							}

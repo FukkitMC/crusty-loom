@@ -53,12 +53,12 @@ public final class RunConfigSettings implements Named {
 	private final List<String> programArgs = new ArrayList<>();
 
 	/**
-	 * The environment (or side) to run, usually client or server.
+	 * The environment (or side) to run, usually server.
 	 */
 	private String environment;
 
 	/**
-	 * The full name of the run configuration, i.e. 'Minecraft Client'.
+	 * The full name of the run configuration, i.e. 'Minecraft Server'.
 	 *
 	 * <p>By default this is determined from the base name.
 	 */
@@ -83,7 +83,7 @@ public final class RunConfigSettings implements Named {
 	private String runDir;
 
 	/**
-	 * The base name of the run configuration, which is the name it is created with, i.e. 'client'
+	 * The base name of the run configuration, which is the name it is created with, i.e. 'server'
 	 */
 	private final String baseName;
 
@@ -254,15 +254,6 @@ public final class RunConfigSettings implements Named {
 	 */
 	public void serverWithGui() {
 		programArgs.removeIf("nogui"::equals);
-	}
-
-	/**
-	 * Configure run config with the default client options.
-	 */
-	public void client() {
-		startFirstThread();
-		environment("client");
-		defaultMainClass(Constants.Knot.KNOT_CLIENT);
 	}
 
 	/**

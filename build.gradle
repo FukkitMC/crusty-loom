@@ -5,7 +5,6 @@ plugins {
 	id 'idea'
 	id 'eclipse'
 	id 'groovy'
-	id 'checkstyle'
 	id 'jacoco'
 	id 'codenarc'
 	id "org.cadixdev.licenser" version "0.5.0"
@@ -54,8 +53,28 @@ configurations.all {
 	}
 }
 
+static download(String artifact) {
+	def f = new File('libs/' + artifact)
+	if (!f.exists()) {
+		f.parentFile.mkdirs()
+		new URL("https://hub.spigotmc.org/stash/projects/SPIGOT/repos/builddata/raw/bin/"+artifact+"?at=refs%2Fheads%2Fmaster").withInputStream{ i -> f.withOutputStream{ it << i }}
+	}
+}
+
+task downloadShit {
+	doLast {
+		download("fernflower.jar")
+		download("SpecialSource-2.jar")
+		download("SpecialSource.jar")
+	}
+}
+
+tasks.compileJava.dependsOn(tasks.downloadShit)
+
 dependencies {
 	implementation gradleApi()
+
+	implementation fileTree(dir: 'libs', include: '*.jar')
 
 	bootstrap project(":bootstrap")
 
@@ -89,7 +108,7 @@ dependencies {
 	implementation ('org.cadixdev:lorenz-io-proguard:0.5.6')
 
 	// decompilers
-	implementation ('net.fabricmc:fabric-fernflower:1.4.1')
+	//implementation ('net.fabricmc:fabric-fernflower:1.4.1')
 	implementation ('org.benf:cfr:0.151')
 
 	// source code remapping
@@ -153,11 +172,6 @@ license {
 	include "**/*.groovy"
 	exclude '**/loom/util/DownloadUtil.java'
 	exclude '**/projects'
-}
-
-checkstyle {
-	configFile = file('checkstyle.xml')
-	toolVersion = '8.42'
 }
 
 codenarc {

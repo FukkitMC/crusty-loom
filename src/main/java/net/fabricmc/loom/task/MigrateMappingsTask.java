@@ -51,8 +51,6 @@ import org.gradle.api.tasks.options.Option;
 import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.configuration.providers.mappings.MappingsProviderImpl;
 import net.fabricmc.loom.configuration.providers.minecraft.MinecraftMappedProvider;
-import net.fabricmc.loom.configuration.providers.mappings.LayeredMappingSpecBuilder;
-import net.fabricmc.loom.configuration.providers.mappings.LayeredMappingsDependency;
 import net.fabricmc.loom.util.SourceRemapper;
 import net.fabricmc.lorenztiny.TinyMappingsJoiner;
 import net.fabricmc.mapping.tree.TinyMappingFactory;
@@ -119,17 +117,8 @@ public class MigrateMappingsTask extends AbstractLoomTask {
 		Set<File> files;
 
 		try {
-			if (mappings.startsWith("net.minecraft:mappings:") || mappings.startsWith("net.mojang.minecraft:mappings:")) {
-				if (!mappings.endsWith(":" + project.getExtensions().getByType(LoomGradleExtension.class).getMinecraftProvider().minecraftVersion())) {
-					throw new UnsupportedOperationException("Migrating Mojang mappings is currently only supported for the specified minecraft version");
-				}
-
-				LayeredMappingsDependency dep = (LayeredMappingsDependency) getExtension().layered(LayeredMappingSpecBuilder::officialMojangMappings);
-				files = dep.resolve();
-			} else {
-				Dependency dependency = project.getDependencies().create(mappings);
-				files = project.getConfigurations().detachedConfiguration(dependency).resolve();
-			}
+			Dependency dependency = project.getDependencies().create(mappings);
+			files = project.getConfigurations().detachedConfiguration(dependency).resolve();
 		} catch (IllegalDependencyNotation ignored) {
 			project.getLogger().info("Could not locate mappings, presuming V2 Yarn");
 

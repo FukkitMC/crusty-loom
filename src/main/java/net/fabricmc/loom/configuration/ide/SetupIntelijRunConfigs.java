@@ -32,8 +32,6 @@ import org.apache.commons.io.FileUtils;
 import org.gradle.api.Project;
 
 import net.fabricmc.loom.LoomGradleExtension;
-import net.fabricmc.loom.configuration.providers.minecraft.MinecraftNativesProvider;
-import net.fabricmc.loom.configuration.providers.minecraft.assets.MinecraftAssetsProvider;
 
 public class SetupIntelijRunConfigs {
 	public static void setup(Project project) {
@@ -55,12 +53,6 @@ public class SetupIntelijRunConfigs {
 	private static void generate(Project project) throws IOException {
 		Project rootProject = project.getRootProject();
 		LoomGradleExtension extension = project.getExtensions().getByType(LoomGradleExtension.class);
-
-		if (extension.ideSync()) {
-			//Ensures the assets are downloaded when idea is syncing a project
-			MinecraftAssetsProvider.provide(extension.getMinecraftProvider(), project);
-			MinecraftNativesProvider.provide(project);
-		}
 
 		String projectPath = project == rootProject ? "" : project.getPath().replace(':', '_');
 

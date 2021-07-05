@@ -112,7 +112,7 @@ public class RunConfig {
 
 		if ("launchwrapper".equals(extension.getLoaderLaunchMethod())) {
 			runConfig.mainClass = "net.minecraft.launchwrapper.Launch"; // TODO What about custom tweakers for run configs?
-			runConfig.programArgs += "--tweakClass " + ("client".equals(environment) ? Constants.LaunchWrapper.DEFAULT_FABRIC_CLIENT_TWEAKER : Constants.LaunchWrapper.DEFAULT_FABRIC_SERVER_TWEAKER);
+			runConfig.programArgs += "--tweakClass " + Constants.LaunchWrapper.DEFAULT_FABRIC_SERVER_TWEAKER;
 		} else {
 			runConfig.mainClass = "net.fabricmc.devlaunchinjector.Main";
 			runConfig.vmArgs = "-XX:+ShowCodeDetailsInExceptionMessages -Dfabric.dli.config=" + encodeEscaped(extension.getDevLauncherConfig().getAbsolutePath()) + " -Dfabric.dli.env=" + environment.toLowerCase();
@@ -235,13 +235,6 @@ public class RunConfig {
 		return dummyConfig;
 	}
 
-	public static String getOSClientJVMArgs() {
-		if (OperatingSystem.getOS().equalsIgnoreCase("osx")) {
-			return " -XstartOnFirstThread";
-		}
-
-		return "";
-	}
 
 	private static String getMainClass(String side, LoomGradleExtension extension, String defaultMainClass) {
 		JsonObject installerJson = extension.getInstallerJson();

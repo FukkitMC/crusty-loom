@@ -39,7 +39,6 @@ import org.jetbrains.java.decompiler.struct.StructMethod;
 import org.jetbrains.java.decompiler.struct.StructRecordComponent;
 import org.objectweb.asm.Opcodes;
 
-import net.fabricmc.fernflower.api.IFabricJavadocProvider;
 import net.fabricmc.mapping.tree.ClassDef;
 import net.fabricmc.mapping.tree.FieldDef;
 import net.fabricmc.mapping.tree.MethodDef;
@@ -48,7 +47,7 @@ import net.fabricmc.mapping.tree.TinyMappingFactory;
 import net.fabricmc.mapping.tree.TinyTree;
 import net.fabricmc.mappings.EntryTriple;
 
-public class TinyJavadocProvider implements IFabricJavadocProvider {
+public class TinyJavadocProvider {
 	private final Map<String, ClassDef> classes = new HashMap<>();
 	private final Map<EntryTriple, FieldDef> fields = new HashMap<>();
 	private final Map<EntryTriple, MethodDef> methods = new HashMap<>();
@@ -72,7 +71,6 @@ public class TinyJavadocProvider implements IFabricJavadocProvider {
 		}
 	}
 
-	@Override
 	public String getClassDoc(StructClass structClass) {
 		ClassDef classDef = classes.get(structClass.qualifiedName);
 
@@ -125,7 +123,6 @@ public class TinyJavadocProvider implements IFabricJavadocProvider {
 		return String.join("\n", parts);
 	}
 
-	@Override
 	public String getFieldDoc(StructClass structClass, StructField structField) {
 		// None static fields in records are handled in the class javadoc.
 		if (isRecord(structClass) && !isStatic(structField)) {
@@ -136,7 +133,6 @@ public class TinyJavadocProvider implements IFabricJavadocProvider {
 		return fieldDef != null ? fieldDef.getComment() : null;
 	}
 
-	@Override
 	public String getMethodDoc(StructClass structClass, StructMethod structMethod) {
 		MethodDef methodDef = methods.get(new EntryTriple(structClass.qualifiedName, structMethod.getName(), structMethod.getDescriptor()));
 

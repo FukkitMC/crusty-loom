@@ -40,23 +40,18 @@ import org.gradle.api.logging.Logger;
 import net.fabricmc.loom.LoomGradlePlugin;
 import net.fabricmc.loom.configuration.DependencyProvider;
 import net.fabricmc.loom.configuration.providers.minecraft.ManifestVersion;
-import net.fabricmc.loom.configuration.providers.minecraft.MinecraftLibraryProvider;
 import net.fabricmc.loom.configuration.providers.minecraft.MinecraftVersionMeta;
 import net.fabricmc.loom.util.Constants;
 import net.fabricmc.loom.util.DownloadUtil;
 import net.fabricmc.loom.util.HashedDownloadUtil;
-import net.fabricmc.stitch.merge.JarMerger;
 
 public class MinecraftProviderImpl extends DependencyProvider implements MinecraftProvider {
 	private String minecraftVersion;
 
 	private MinecraftVersionMeta versionInfo;
-	private MinecraftLibraryProvider libraryProvider;
 
 	private File minecraftJson;
-	private File minecraftClientJar;
 	private File minecraftServerJar;
-	private File minecraftMergedJar;
 	private File versionManifestJson;
 
 	public MinecraftProviderImpl(Project project) {
@@ -81,40 +76,20 @@ public class MinecraftProviderImpl extends DependencyProvider implements Minecra
 		addDependency(getProject().files(this.getClass().getProtectionDomain().getCodeSource().getLocation()), "compileOnly");
 
 		if (offline) {
-			if (minecraftClientJar.exists() && minecraftServerJar.exists()) {
-				getProject().getLogger().debug("Found client and server jars, presuming up-to-date");
-			} else if (minecraftMergedJar.exists()) {
-				//Strictly we don't need the split jars if the merged one exists, let's try go on
-				getProject().getLogger().warn("Missing game jar but merged jar present, things might end badly");
+			if (minecraftServerJar.exists()) {
+				getProject().getLogger().debug("Server jar, presuming up-to-date");
 			} else {
-				throw new GradleException("Missing jar(s); Client: " + minecraftClientJar.exists() + ", Server: " + minecraftServerJar.exists());
+				throw new GradleException("Missing jar(s); Server: " + minecraftServerJar.exists());
 			}
 		} else {
 			downloadJars(getProject().getLogger());
 		}
 
-		libraryProvider = new MinecraftLibraryProvider();
-		libraryProvider.provide(this, getProject());
-
-		if (!minecraftMergedJar.exists() || isRefreshDeps()) {
-			try {
-				mergeJars(getProject().getLogger());
-			} catch (Throwable e) {
-				HashedDownloadUtil.delete(minecraftClientJar);
-				HashedDownloadUtil.delete(minecraftServerJar);
-				minecraftMergedJar.delete();
-
-				getProject().getLogger().error("Could not merge JARs! Deleting source JARs - please re-run the command and move on.", e);
-				throw e;
-			}
-		}
 	}
 
 	private void initFiles() {
 		minecraftJson = new File(getExtension().getUserCache(), "minecraft-" + minecraftVersion + "-info.json");
-		minecraftClientJar = new File(getExtension().getUserCache(), "minecraft-" + minecraftVersion + "-client.jar");
 		minecraftServerJar = new File(getExtension().getUserCache(), "minecraft-" + minecraftVersion + "-server.jar");
-		minecraftMergedJar = new File(getExtension().getUserCache(), "minecraft-" + minecraftVersion + "-merged.jar");
 		versionManifestJson = new File(getExtension().getUserCache(), "version_manifest.json");
 	}
 
@@ -204,28 +179,17 @@ public class MinecraftProviderImpl extends DependencyProvider implements Minecra
 	}
 
 	private void downloadJars(Logger logger) throws IOException {
-		if (getExtension().isShareCaches() && !getExtension().isRootProject() && minecraftClientJar.exists() && minecraftServerJar.exists() && !isRefreshDeps()) {
+		if (getExtension().isShareCaches() && !getExtension().isRootProject() && minecraftServerJar.exists() && !isRefreshDeps()) {
 			return;
 		}
 
-		MinecraftVersionMeta.Download client = versionInfo.download("client");
 		MinecraftVersionMeta.Download server = versionInfo.download("server");
 
-		HashedDownloadUtil.downloadIfInvalid(new URL(client.url()), minecraftClientJar, client.sha1(), logger, false);
 		HashedDownloadUtil.downloadIfInvalid(new URL(server.url()), minecraftServerJar, server.sha1(), logger, false);
 	}
 
-	private void mergeJars(Logger logger) throws IOException {
-		logger.info(":merging jars");
-
-		try (JarMerger jarMerger = new JarMerger(minecraftClientJar, minecraftServerJar, minecraftMergedJar)) {
-			jarMerger.enableSyntheticParamsOffset();
-			jarMerger.merge();
-		}
-	}
-
-	public File getMergedJar() {
-		return minecraftMergedJar;
+	public File getServerJar() {
+		return minecraftServerJar;
 	}
 
 	@Override
@@ -236,10 +200,6 @@ public class MinecraftProviderImpl extends DependencyProvider implements Minecra
 	@Override
 	public MinecraftVersionMeta getVersionInfo() {
 		return versionInfo;
-	}
-
-	public MinecraftLibraryProvider getLibraryProvider() {
-		return libraryProvider;
 	}
 
 	@Override
