@@ -1,5 +1,6 @@
 plugins {
 	id 'java'
+	id 'java-library'
 	id 'maven-publish'
 	id 'java-gradle-plugin'
 	id 'idea'
@@ -31,9 +32,13 @@ if (ENV.BUILD_NUMBER) {
 }
 
 repositories {
+	mavenLocal()
 	maven {
 		name = 'Fabric'
 		url = 'https://maven.fabricmc.net/'
+	}
+	maven {
+		url 'https://storage.googleapis.com/devan-maven/'
 	}
 	mavenCentral()
 }
@@ -108,7 +113,7 @@ dependencies {
 	implementation ('org.cadixdev:lorenz-io-proguard:0.5.6')
 
 	// decompilers
-	//implementation ('net.fabricmc:fabric-fernflower:1.4.1')
+	implementation ('net.fabricmc:fabric-fernflower:1.4.1')
 	implementation ('org.benf:cfr:0.151')
 
 	// source code remapping
@@ -134,6 +139,7 @@ dependencies {
 	implementation ('org.eclipse.platform:org.eclipse.team.core:[3.8.1100]')
 	implementation ('org.eclipse.platform:org.eclipse.text:[3.11.0]')
 
+	api ('xyz.fukkit:crusty:2.2.2')
 
 	// Kapt integration
 	compileOnly('org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.0')

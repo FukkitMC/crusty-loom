@@ -54,7 +54,6 @@ public final class CompileConfiguration {
 		data.createLazyConfiguration(Constants.Configurations.MOD_COMPILE_CLASSPATH).configure(configuration -> configuration.setTransitive(true));
 		data.createLazyConfiguration(Constants.Configurations.MOD_COMPILE_CLASSPATH_MAPPED).configure(configuration -> configuration.setTransitive(false));
 		data.createLazyConfiguration(Constants.Configurations.MINECRAFT_NAMED).configure(configuration -> configuration.setTransitive(false)); // The launchers do not recurse dependencies
-		data.createLazyConfiguration(Constants.Configurations.MINECRAFT_DEPENDENCIES).configure(configuration -> configuration.setTransitive(false));
 		data.createLazyConfiguration(Constants.Configurations.LOADER_DEPENDENCIES).configure(configuration -> configuration.setTransitive(false));
 		data.createLazyConfiguration(Constants.Configurations.MINECRAFT).configure(configuration -> configuration.setTransitive(false));
 		data.createLazyConfiguration(Constants.Configurations.INCLUDE).configure(configuration -> configuration.setTransitive(false)); // Dont get transitive deps
@@ -65,7 +64,6 @@ public final class CompileConfiguration {
 		data.createLazyConfiguration(Constants.Configurations.MAPPINGS);
 		data.createLazyConfiguration(Constants.Configurations.MAPPINGS_FINAL);
 		data.createLazyConfiguration(Constants.Configurations.LOOM_DEVELOPMENT_DEPENDENCIES);
-		data.createLazyConfiguration(Constants.Configurations.UNPICK_CLASSPATH);
 
 		for (RemappedConfigurationEntry entry : Constants.MOD_COMPILE_ENTRIES) {
 			data.createLazyConfiguration(entry.sourceConfiguration())

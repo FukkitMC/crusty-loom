@@ -28,11 +28,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Consumer;
 
 import com.google.common.collect.ImmutableMap;
+import io.github.fukkitmc.crusty.CrustyExtension;
 import org.gradle.api.Project;
 
 import net.fabricmc.loom.configuration.DependencyProvider;
@@ -44,45 +44,51 @@ import net.fabricmc.tinyremapper.OutputConsumerPath;
 import net.fabricmc.tinyremapper.TinyRemapper;
 
 public class MinecraftMappedProvider extends DependencyProvider {
+	public static Path buildData;
+
 	private static final Map<String, String> JSR_TO_JETBRAINS = new ImmutableMap.Builder<String, String>()
-			.put("javax/annotation/Nullable", "org/jetbrains/annotations/Nullable")
-			.put("javax/annotation/Nonnull", "org/jetbrains/annotations/NotNull")
-			.put("javax/annotation/concurrent/Immutable", "org/jetbrains/annotations/Unmodifiable")
-			.build();
+		.put("javax/annotation/Nullable", "org/jetbrains/annotations/Nullable")
+		.put("javax/annotation/Nonnull", "org/jetbrains/annotations/NotNull")
+		.put("javax/annotation/concurrent/Immutable", "org/jetbrains/annotations/Unmodifiable")
+		.build();
 
 	private File minecraftMappedJar;
 	private File minecraftIntermediaryJar;
 
 	private MinecraftProviderImpl minecraftProvider;
 
+	private final CrustyExtension crusty;
+
 	public MinecraftMappedProvider(Project project) {
 		super(project);
+		this.crusty = this.getProject().getExtensions().getByType(CrustyExtension.class);
 	}
 
 	@Override
 	public void provide(DependencyInfo dependency, Consumer<Runnable> postPopulationScheduler) throws Exception {
-		if (!getExtension().getMappingsProvider().tinyMappings.exists()) {
+		if(!getExtension().getMappingsProvider().tinyMappings.exists()) {
 			throw new RuntimeException("mappings file not found");
 		}
 
-		if (!getExtension().getMinecraftProvider().getServerJar().exists()) {
+		if(!getExtension().getMinecraftProvider().getServerJar().exists()) {
 			throw new RuntimeException("input merged jar not found");
 		}
 
-		if (!minecraftMappedJar.exists() || !getIntermediaryJar().exists() || isRefreshDeps()) {
-			if (minecraftMappedJar.exists()) {
+		if(!minecraftMappedJar.exists() || !getIntermediaryJar().exists() || isRefreshDeps()) {
+			if(minecraftMappedJar.exists()) {
 				minecraftMappedJar.delete();
 			}
 
 			minecraftMappedJar.getParentFile().mkdirs();
 
-			if (minecraftIntermediaryJar.exists()) {
+			if(minecraftIntermediaryJar.exists()) {
 				minecraftIntermediaryJar.delete();
 			}
 
 			try {
 				mapMinecraftJar();
-			} catch (Throwable t) {
+				this.crusty.getCrustyJar(buildData);
+			} catch(Throwable t) {
 				// Cleanup some some things that may be in a bad state now
 				minecraftMappedJar.delete();
 				minecraftIntermediaryJar.delete();
@@ -91,11 +97,15 @@ public class MinecraftMappedProvider extends DependencyProvider {
 			}
 		}
 
-		if (!minecraftMappedJar.exists()) {
+		if(!minecraftMappedJar.exists()) {
 			throw new RuntimeException("mapped jar not found");
 		}
 
 		addDependencies(dependency, postPopulationScheduler);
+	}
+
+	public File getIntermediaryJar() {
+		return minecraftIntermediaryJar;
 	}
 
 	private void mapMinecraftJar() throws IOException {
@@ -104,78 +114,70 @@ public class MinecraftMappedProvider extends DependencyProvider {
 		MappingsProviderImpl mappingsProvider = getExtension().getMappingsProvider();
 
 		Path input = minecraftProvider.getServerJar().toPath();
-		Path outputMapped = minecraftMappedJar.toPath();
 		Path outputIntermediary = minecraftIntermediaryJar.toPath();
 
-		for (String toM : Arrays.asList("named", "intermediary")) {
-			Path output = "named".equals(toM) ? outputMapped : outputIntermediary;
+		getProject().getLogger().lifecycle(":remapping minecraft (TinyRemapper, " + fromM + " -> " + "intermediary" + ")");
 
-			getProject().getLogger().lifecycle(":remapping minecraft (TinyRemapper, " + fromM + " -> " + toM + ")");
+		Files.deleteIfExists(outputIntermediary);
 
-			Files.deleteIfExists(output);
+		TinyRemapper remapper = getTinyRemapper(fromM, "intermediary");
 
-			TinyRemapper remapper = getTinyRemapper(fromM, toM);
-
-			try (OutputConsumerPath outputConsumer = new OutputConsumerPath.Builder(output).build()) {
-				outputConsumer.addNonClassFiles(input);
-				remapper.readClassPath(getRemapClasspath());
-				remapper.readInputs(input);
-				remapper.apply(outputConsumer);
-			} catch (Exception e) {
-				throw new RuntimeException("Failed to remap JAR " + input + " with mappings from " + mappingsProvider.tinyMappings, e);
-			} finally {
-				remapper.finish();
-			}
+		try(OutputConsumerPath outputConsumer = new OutputConsumerPath.Builder(outputIntermediary).build()) {
+			outputConsumer.addNonClassFiles(input);
+			remapper.readClassPath(getRemapClasspath());
+			remapper.readInputs(input);
+			remapper.apply(outputConsumer);
+		} catch(Exception e) {
+			throw new RuntimeException("Failed to remap JAR " + input + " with mappings from " + mappingsProvider.tinyMappings, e);
+		} finally {
+			remapper.finish();
 		}
+	}
+
+	protected void addDependencies(DependencyInfo dependency, Consumer<Runnable> postPopulationScheduler) {
+		getProject().getDependencies()
+				.add(Constants.Configurations.MINECRAFT_NAMED,
+				     getProject().getDependencies().module("net.minecraft:minecraft:" + getJarVersionString("mapped")));
 	}
 
 	public TinyRemapper getTinyRemapper(String fromM, String toM) throws IOException {
 		return TinyRemapper.newRemapper()
-				.withMappings(TinyRemapperMappingsHelper.create(getExtension().getMappingsProvider().getMappings(), fromM, toM, true))
-				.withMappings(out -> JSR_TO_JETBRAINS.forEach(out::acceptClass))
-				.renameInvalidLocals(true)
-				.rebuildSourceFilenames(true)
-				.build();
+				       .withMappings(TinyRemapperMappingsHelper.create(getExtension().getMappingsProvider().getMappings(), fromM, toM, true))
+				       .withMappings(out -> JSR_TO_JETBRAINS.forEach(out::acceptClass))
+				       .renameInvalidLocals(true)
+				       .rebuildSourceFilenames(true)
+				       .build();
 	}
 
+	private static final Path[] EMPTY = new Path[0];
 	public Path[] getRemapClasspath() {
-		return getProject().getConfigurations().getByName(Constants.Configurations.MINECRAFT_DEPENDENCIES).getFiles()
-				.stream().map(File::toPath).toArray(Path[]::new);
+		return EMPTY;
 	}
 
-	protected void addDependencies(DependencyInfo dependency, Consumer<Runnable> postPopulationScheduler) {
-		getProject().getDependencies().add(Constants.Configurations.MINECRAFT_NAMED,
-				getProject().getDependencies().module("net.minecraft:minecraft:" + getJarVersionString("mapped")));
+	protected String getJarVersionString(String type) {
+		return String.format("%s-%s-%s-%s",
+		                     minecraftProvider.minecraftVersion(),
+		                     type,
+		                     getExtension().getMappingsProvider().mappingsName,
+		                     getExtension().getMappingsProvider().mappingsVersion);
+	}
+
+	@Override
+	public String getTargetConfig() {
+		return Constants.Configurations.MINECRAFT_NAMED;
 	}
 
 	public void initFiles(MinecraftProviderImpl minecraftProvider, MappingsProviderImpl mappingsProvider) {
 		this.minecraftProvider = minecraftProvider;
 		minecraftIntermediaryJar = new File(getExtension().getUserCache(), "minecraft-" + getJarVersionString("intermediary") + ".jar");
-		minecraftMappedJar = new File(getJarDirectory(getExtension().getUserCache(), "mapped"), "minecraft-" + getJarVersionString("mapped") + ".jar");
+		minecraftMappedJar = this.crusty.getDestination(buildData, false).toFile();
 	}
 
 	protected File getJarDirectory(File parentDirectory, String type) {
 		return new File(parentDirectory, getJarVersionString(type));
 	}
 
-	protected String getJarVersionString(String type) {
-		return String.format("%s-%s-%s-%s", minecraftProvider.minecraftVersion(), type, getExtension().getMappingsProvider().mappingsName, getExtension().getMappingsProvider().mappingsVersion);
-	}
-
-	public File getIntermediaryJar() {
-		return minecraftIntermediaryJar;
-	}
-
 	public File getMappedJar() {
 		return minecraftMappedJar;
-	}
-
-	public File getUnpickedJar() {
-		return new File(getJarDirectory(getExtension().getUserCache(), "mapped"), "minecraft-" + getJarVersionString("unpicked") + ".jar");
-	}
-
-	@Override
-	public String getTargetConfig() {
-		return Constants.Configurations.MINECRAFT_NAMED;
 	}
 }

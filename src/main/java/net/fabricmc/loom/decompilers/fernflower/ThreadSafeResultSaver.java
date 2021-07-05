@@ -45,11 +45,12 @@ import java.util.zip.ZipOutputStream;
 import org.jetbrains.java.decompiler.main.DecompilerContext;
 import org.jetbrains.java.decompiler.main.extern.IResultSaver;
 
+import net.fabricmc.fernflower.api.IFabricResultSaver;
 
 /**
  * Created by covers1624 on 18/02/19.
  */
-public class ThreadSafeResultSaver implements IResultSaver {
+public class ThreadSafeResultSaver implements IResultSaver, IFabricResultSaver {
 	private final Supplier<File> output;
 	private final Supplier<File> lineMapFile;
 
@@ -90,6 +91,7 @@ public class ThreadSafeResultSaver implements IResultSaver {
 		this.saveClassEntry(path, archiveName, qualifiedName, entryName, content, null);
 	}
 
+	@Override
 	public void saveClassEntry(String path, String archiveName, String qualifiedName, String entryName, String content, int[] mapping) {
 		String key = path + "/" + archiveName;
 		ExecutorService executor = saveExecutors.get(key);

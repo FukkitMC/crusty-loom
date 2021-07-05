@@ -70,7 +70,7 @@ public abstract class AbstractFernFlowerDecompiler implements LoomDecompiler {
 				put(IFernflowerPreferences.BYTECODE_SOURCE_MAPPING, "1");
 				put(IFernflowerPreferences.REMOVE_SYNTHETIC, "1");
 				put(IFernflowerPreferences.LOG_LEVEL, "trace");
-				//put(IFernflowerPreferences.THREADS, metaData.numberOfThreads());
+				put(IFernflowerPreferences.THREADS, metaData.numberOfThreads());
 				put(IFernflowerPreferences.INDENT_STRING, "\t");
 			}};
 

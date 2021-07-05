@@ -111,6 +111,9 @@ public class LoomGradleExtension {
 		return srcMercuryCache[id] != null ? srcMercuryCache[id] : (srcMercuryCache[id] = factory.get());
 	}
 
+	public void setBuildData(Path path) {
+		MinecraftMappedProvider.buildData = path;
+	}
 
 	public LoomGradleExtension(Project project) {
 		this.project = project;
