@@ -76,7 +76,8 @@ public class UnpickJarTask extends JavaExec {
 
 	private static final File[] DEPS = new File[0];
 	private File[] getMinecraftDependencies() {
-		return DEPS;
+		return getProject().getConfigurations().getByName(Constants.Configurations.MINECRAFT_DEPENDENCIES)
+				.resolve().toArray(new File[0]);
 	}
 
 	private File getConstantJar() {

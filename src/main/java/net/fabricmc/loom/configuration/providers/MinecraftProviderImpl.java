@@ -40,6 +40,7 @@ import org.gradle.api.logging.Logger;
 import net.fabricmc.loom.LoomGradlePlugin;
 import net.fabricmc.loom.configuration.DependencyProvider;
 import net.fabricmc.loom.configuration.providers.minecraft.ManifestVersion;
+import net.fabricmc.loom.configuration.providers.minecraft.MinecraftLibraryProvider;
 import net.fabricmc.loom.configuration.providers.minecraft.MinecraftVersionMeta;
 import net.fabricmc.loom.util.Constants;
 import net.fabricmc.loom.util.DownloadUtil;
@@ -49,6 +50,7 @@ public class MinecraftProviderImpl extends DependencyProvider implements Minecra
 	private String minecraftVersion;
 
 	private MinecraftVersionMeta versionInfo;
+	private MinecraftLibraryProvider libraryProvider;
 
 	private File minecraftJson;
 	private File minecraftServerJar;
@@ -85,6 +87,8 @@ public class MinecraftProviderImpl extends DependencyProvider implements Minecra
 			downloadJars(getProject().getLogger());
 		}
 
+		libraryProvider = new MinecraftLibraryProvider();
+		libraryProvider.provide(this, getProject());
 	}
 
 	private void initFiles() {
@@ -200,6 +204,10 @@ public class MinecraftProviderImpl extends DependencyProvider implements Minecra
 	@Override
 	public MinecraftVersionMeta getVersionInfo() {
 		return versionInfo;
+	}
+
+	public MinecraftLibraryProvider getLibraryProvider() {
+		return libraryProvider;
 	}
 
 	@Override
