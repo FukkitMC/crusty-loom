@@ -188,7 +188,7 @@ codenarc {
 gradlePlugin {
 	plugins {
 		fabricLoom {
-			id = 'fabric-loom'
+			id = 'crusty-loom'
 			implementationClass = 'net.fabricmc.loom.bootstrap.LoomGradlePluginBootstrap'
 		}
 	}
@@ -264,8 +264,8 @@ publishing {
 
 		// Manually crate the plugin marker for snapshot versions
 		snapshotPlugin(MavenPublication) { publication ->
-			groupId 'fabric-loom'
-			artifactId 'fabric-loom.gradle.plugin'
+			groupId 'crusty-loom'
+			artifactId 'crusty-loom.gradle.plugin'
 			version baseVersion + '-SNAPSHOT'
 
 			pom.withXml({
@@ -277,7 +277,7 @@ publishing {
 				Node groupId = dependency.appendChild(document.createElement('groupId'))
 				groupId.setTextContent('net.fabricmc')
 				Node artifactId = dependency.appendChild(document.createElement('artifactId'))
-				artifactId.setTextContent('fabric-loom')
+				artifactId.setTextContent('crusty-loom')
 				Node version = dependency.appendChild(document.createElement('version'))
 				version.setTextContent(baseVersion + '-SNAPSHOT')
 			})
@@ -285,13 +285,7 @@ publishing {
 	}
 	repositories {
 		maven {
-			if (ENV.MAVEN_URL) {
-				url ENV.MAVEN_URL
-				credentials {
-					username ENV.MAVEN_USERNAME
-					password ENV.MAVEN_PASSWORD
-				}
-			}
+			url 'gcs://devan-maven'
 		}
 	}
 }
