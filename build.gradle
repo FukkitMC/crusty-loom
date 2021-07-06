@@ -22,7 +22,7 @@ tasks.withType(JavaCompile).configureEach {
 
 group = 'net.fabricmc'
 archivesBaseName = project.name
-version '0.10.1'
+version '0.10.2'
 
 repositories {
 	mavenLocal()
@@ -112,7 +112,7 @@ dependencies {
 	implementation ('org.eclipse.platform:org.eclipse.team.core:[3.8.1100]')
 	implementation ('org.eclipse.platform:org.eclipse.text:[3.11.0]')
 
-	api ('xyz.fukkit:crusty:2.2.2')
+	implementation ('xyz.fukkit:crusty:2.3.4')
 
 	// Kapt integration
 	compileOnly('org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.0')

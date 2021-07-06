@@ -170,7 +170,7 @@ public class MinecraftMappedProvider extends DependencyProvider {
 	public void initFiles(MinecraftProviderImpl minecraftProvider, MappingsProviderImpl mappingsProvider) {
 		this.minecraftProvider = minecraftProvider;
 		minecraftIntermediaryJar = new File(getExtension().getUserCache(), "minecraft-" + getJarVersionString("intermediary") + ".jar");
-		minecraftMappedJar = this.crusty.getDestination(buildData, false).toFile();
+		minecraftMappedJar = this.crusty.getCrustyJar(buildData).toFile();
 	}
 
 	protected File getJarDirectory(File parentDirectory, String type) {
